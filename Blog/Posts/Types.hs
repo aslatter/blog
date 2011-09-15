@@ -142,8 +142,10 @@ insertPost post = do
   unsafeInsertPostById post pid
   return pid
 
+-- Assumes that a post with the given id does not exist
+-- in the posts collection
 unsafeInsertPostById :: PostInsert -> PostId -> Update Posts ()
-unsafeInsertPostById postIns id = do
+unsafeInsertPostById postIns postIdent = do
   let day = postDay postIns
       utcTime = postUtcTime postIns
   shortTitle <- runQuery $ createPostTitle postIns
@@ -155,9 +157,24 @@ unsafeInsertPostById postIns id = do
           , post_body = insert_body postIns
           , post_short_name = shortTitle
           }
+  modify $ \posts ->
+      posts { posts_by_day = updateSet postIdent day (posts_by_day posts)
+            , posts_by_time = updateSet postIdent utcTime (posts_by_time posts)
+            , posts_by_id = HM.insert postIdent post (posts_by_id posts)
+            }
   undefined
+ where
+   updateSet :: (Ord key, Eq val, Hashable val) =>
+                val -> key ->
+                M.Map key (HS.HashSet val) -> M.Map key (HS.HashSet val)
+   updateSet v =
+       M.alter $ \hsM ->
+           case hsM of
+             Nothing -> Just $ HS.singleton v
+             Just hs -> Just $ HS.insert v hs
 
--- always succeeds, unless the post id is invalid
+
+-- | always succeeds, unless the post id is invalid
 updatePost :: PostInsert -> PostId -> Update Posts Bool
 updatePost post pid = do
   result <- deletePost pid
