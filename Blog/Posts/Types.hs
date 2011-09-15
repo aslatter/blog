@@ -13,6 +13,7 @@ import Database.BlobStorage (BlobId)
 
 import Data.Acid
 import Data.Char (isAlphaNum)
+import Data.Data (Data)
 import Data.Hashable (Hashable)
 import Data.HashMap.Strict (HashMap)
 import qualified Data.HashMap.Strict as HM
@@ -78,7 +79,7 @@ postDay :: PostLike post => post -> Day
 postDay = localDay . zonedTimeToLocalTime . insert_time . toPostInsert
 
 newtype PostId = MkPostId Word32
-  deriving (Eq, Ord, Hashable, SafeCopy, Typeable)
+  deriving (Eq, Ord, Show, Read, Hashable, SafeCopy, Typeable, Data)
 
 data Posts =
  MkPosts {

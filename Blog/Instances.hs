@@ -9,6 +9,11 @@ import qualified Data.HashMap.Strict as H
 import qualified Data.HashSet as HS
 import Data.SafeCopy
 import qualified Data.Serialize as C
+import qualified Data.Text as T
+import qualified Data.Time as Time
+import Data.Word
+
+import qualified Web.Routes as WR
 
 instance (SafeCopy k, SafeCopy v, Eq k, Hashable k) => SafeCopy (H.HashMap k v) where
     getCopy = contain $ fmap H.fromList safeGet
@@ -30,4 +35,12 @@ getBinaryCopy =
 
 putBinaryCopy :: (B.Binary a) => a -> Contained C.Put
 putBinaryCopy = contain . C.put . B.encode
+
+instance WR.PathInfo T.Text where
+    toPathSegments = WR.toPathSegments . T.unpack
+    fromPathSegments = T.pack `fmap` WR.fromPathSegments
+
+instance WR.PathInfo Word32 where
+    toPathSegments = WR.toPathSegments . (fromIntegral :: Word32 -> Int)
+    fromPathSegments = (fromIntegral :: Int -> Word32) `fmap` WR.fromPathSegments
 

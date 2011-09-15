@@ -1,8 +1,15 @@
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
+{-|
+
+This module defines the main 'Application' type,
+as well as the associated monad for manipulating it.
+
+-}
 module Blog.Types where
 
 import Blog.Users.Types
 import Blog.Posts.Types
+import Blog.Sitemap (Sitemap)
 
 import Control.Monad.Reader
 import Control.Monad.State
