@@ -44,6 +44,13 @@ data Users
    }
   deriving (Typeable)
 
+emptyUsers =
+    MkUsers
+    { users_by_id = mempty
+    , users_by_name = mempty
+    , users_next_id = 0
+    }
+
 freshId :: Update Users UserId
 freshId = do
   users <- get

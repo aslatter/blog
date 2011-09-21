@@ -21,7 +21,7 @@ import Data.HashSet (HashSet)
 import qualified Data.HashSet as HS
 import qualified Data.Map as M
 import Data.Maybe (catMaybes)
-import Data.Monoid (mappend)
+import Data.Monoid (mappend, mempty)
 import Data.SafeCopy
 import Data.Text (Text)
 import qualified Data.Text as T
@@ -89,6 +89,15 @@ data Posts =
   posts_next_id :: !Word32
  }
  deriving Typeable
+
+emptyPosts :: Posts
+emptyPosts =
+    MkPosts
+    { posts_by_time = mempty
+    , posts_by_day = mempty
+    , posts_by_id = mempty
+    , posts_next_id = 0
+    }
 
 -- | Generate an id for a new post
 freshId :: Update Posts PostId

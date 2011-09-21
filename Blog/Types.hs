@@ -5,21 +5,41 @@ This module defines the main 'Application' type,
 as well as the associated monad for manipulating it.
 
 -}
-module Blog.Types where
+module Blog.Types
+    ( module Blog.Users.Types
+    , module Blog.Posts.Types
+    , module Blog.Sitemap
+    , Application(..)
+    , AppDynamic(..)
+    , App
+    , emptyAppDynamic
+    , appBlobStore
+    , appUsers
+    , appPosts
+    ) where
 
-import Blog.Users.Types
-import Blog.Posts.Types
-import Blog.Sitemap (Sitemap)
+import Blog.Users.Types (Users(..), UserId(..), emptyUsers)
+import Blog.Posts.Types (Posts(..), emptyPosts)
+import Blog.Sitemap
+    ( Sitemap(..)
+    , PostSite(..)
+    , UserSite(..)
+    )
 
 import Control.Monad.Reader
-import Control.Monad.State
+import Control.Monad.State.Strict
 
 import Database.BlobStorage
 
 import Data.Acid
+import Data.Monoid (mempty)
+
+import Happstack.Server (ServerPartT)
 
 import Text.Templating.Heist
     (TemplateState)
+
+import Web.Routes (RouteT)
 
 -- shared for all requests
 data Application
@@ -27,7 +47,7 @@ data Application
       { app_blobstore :: BlobStorage
       , app_users :: AcidState Users
       , app_posts :: AcidState Posts
-      , app_template :: TemplateState AppMonad
+      --, app_template :: TemplateState App
       }
 
 -- created within a single request
@@ -36,23 +56,22 @@ data AppDynamic
       { app_user :: Maybe UserId
       }
 
-newtype AppMonadT m a = A (ReaderT Application (StateT AppDynamic m) a)
-  deriving (Functor, Monad, MonadIO)
-type AppMonad = AppMonadT IO
+emptyAppDynamic :: AppDynamic
+emptyAppDynamic = MkAppDynamic Nothing
 
-class MonadIO m => App m where
-    appBlobStore :: m BlobStorage
-    appUsers :: m (AcidState Users)
-    appPosts :: m (AcidState Posts)
-    appTemplate :: m (TemplateState AppMonad)
-    appDynamicGet :: m AppDynamic
-    appDynamicSet :: AppDynamic -> m ()
+-- Woo!
+type App = RouteT Sitemap (ServerPartT (ReaderT Application (StateT AppDynamic IO)))
 
-instance MonadIO m => App (AppMonadT m) where
-    appBlobStore = A $ asks app_blobstore
-    appUsers     = A $ asks app_users
-    appPosts     = A $ asks app_posts
-    appTemplate  = A $ asks app_template
-    appDynamicGet = A $ get
-    appDynamicSet = A . put
+appBlobStore :: App BlobStorage
+appBlobStore = asks app_blobstore
 
+appUsers :: App (AcidState Users)
+appUsers = asks app_users
+
+appPosts :: App (AcidState Posts)
+appPosts = asks app_posts
+
+{-
+appTemplate :: App (TemplateState App)
+appTemplate = asks app_template
+-}
