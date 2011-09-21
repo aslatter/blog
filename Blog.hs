@@ -22,14 +22,14 @@ route url =
             loginURL   <- showURL $ User UserLogin
 
             ok $ toResponse $
-               html $
+               docTypeHtml $
                body $ do
                  h1 "links"
                  p $ a ! A.href (toValue newPostURL)  $ "New Post"
                  p $ a ! A.href (toValue loginURL)    $ "Login"
                           
-      Post{} -> undefined
-      User{} -> undefined
+      Post{} -> error "What the heck are posts?!?"
+      User{} -> error "What the heck are users?!?"
 
 -- gory details
 main :: IO ()
