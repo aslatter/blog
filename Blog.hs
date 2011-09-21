@@ -1,6 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-import Blog.Types
+import Blog.Core
 
 import Control.Monad.Reader
 import Control.Monad.State.Strict

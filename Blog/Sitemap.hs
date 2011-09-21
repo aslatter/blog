@@ -9,7 +9,7 @@ mapping to and from path segments.
 module Blog.Sitemap where
 
 import Blog.Instances()
-import Blog.Posts.Types (PostId(..))
+import Blog.Posts.Core (PostId(..))
 
 import Control.Applicative
 

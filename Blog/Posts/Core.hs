@@ -1,8 +1,8 @@
 {-# LANGUAGE DoAndIfThenElse, BangPatterns, TemplateHaskell, GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE TypeFamilies, DeriveDataTypeable #-}
-module Blog.Posts.Types where
+module Blog.Posts.Core where
 
-import Blog.Users.Types (UserId)
+import Blog.Users.Core (UserId)
 
 import Control.Applicative ((<$>))
 import Control.Monad (when)

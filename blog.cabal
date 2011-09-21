@@ -41,10 +41,10 @@ Executable blog
                        web-routes-happstack == 0.22.*,
                        web-routes-th == 0.20.*
 
-  Other-modules:       Blog.Instances
+  Other-modules:       Blog.Core
+                       Blog.Instances
                        Blog.Sitemap
-                       Blog.Types
                        Blog.Users
-                       Blog.Users.Types
-                       Blog.Posts.Types
+                       Blog.Users.Core
+                       Blog.Posts.Core
   -- Build-tools:         

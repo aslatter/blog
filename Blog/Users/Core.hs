@@ -1,6 +1,6 @@
 {-# LANGUAGE TemplateHaskell, GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE TypeFamilies, DeriveDataTypeable #-}
-module Blog.Users.Types where
+module Blog.Users.Core where
 
 import Blog.Instances()
 

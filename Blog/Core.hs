@@ -5,9 +5,9 @@ This module defines the main 'Application' type,
 as well as the associated monad for manipulating it.
 
 -}
-module Blog.Types
-    ( module Blog.Users.Types
-    , module Blog.Posts.Types
+module Blog.Core
+    ( module Blog.Users.Core
+    , module Blog.Posts.Core
     , module Blog.Sitemap
     , Application(..)
     , AppDynamic(..)
@@ -18,8 +18,8 @@ module Blog.Types
     , appPosts
     ) where
 
-import Blog.Users.Types (Users(..), UserId(..), emptyUsers)
-import Blog.Posts.Types (Posts(..), emptyPosts)
+import Blog.Users.Core (Users(..), UserId(..), emptyUsers)
+import Blog.Posts.Core (Posts(..), emptyPosts)
 import Blog.Sitemap
     ( Sitemap(..)
     , PostSite(..)
