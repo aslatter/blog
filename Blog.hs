@@ -34,23 +34,26 @@ route url =
 -- gory details
 main :: IO ()
 main = do
-  posts <- openAcidState emptyPosts
-  users <- openAcidState emptyUsers
-  store <- BS.open "blobStore"
+  appState <- initAppState
 
-  let app = MkApplication store users posts
-  let site = mkSite app
+  let site = mkSite appState
 
   simpleHTTP nullConf $
     implSite "/" "" site
 
+initAppState :: IO Application
+initAppState = do
+  posts <- openAcidState emptyPosts
+  users <- openAcidState emptyUsers
+  store <- BS.open "blobStore"
+
+  return $ MkApplication store users posts  
+
 -- gorier details
 mkSite :: Application -> Site Sitemap (ServerPartT IO Response)
-mkSite app
+mkSite appState
     = setDefault Home
       $ mkSitePI
       $ runRouteT
-          (\url -> mapRouteT mapFn (route url))
- where
-   mapFn =
-       mapServerPartT $ flip evalStateT emptyAppDynamic . flip runReaderT app
+      $ runApp appState . route
+

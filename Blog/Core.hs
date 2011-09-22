@@ -12,6 +12,7 @@ module Blog.Core
     , Application(..)
     , AppDynamic(..)
     , App
+    , runApp
     , emptyAppDynamic
     , appBlobStore
     , appUsers
@@ -34,12 +35,12 @@ import Database.BlobStorage
 import Data.Acid
 import Data.Monoid (mempty)
 
-import Happstack.Server (ServerPartT)
+import Happstack.Server (ServerPartT, mapServerPartT)
 
 import Text.Templating.Heist
     (TemplateState)
 
-import Web.Routes (RouteT)
+import Web.Routes (RouteT, mapRouteT)
 
 -- shared for all requests
 data Application
@@ -61,6 +62,12 @@ emptyAppDynamic = MkAppDynamic Nothing
 
 -- Woo!
 type App = RouteT Sitemap (ServerPartT (ReaderT Application (StateT AppDynamic IO)))
+
+runApp :: Application -> App a -> RouteT Sitemap (ServerPartT IO) a
+runApp appState m = mapRouteT mapFn m
+ where
+   mapFn =
+       mapServerPartT $ flip evalStateT emptyAppDynamic . flip runReaderT appState
 
 appBlobStore :: App BlobStorage
 appBlobStore = asks app_blobstore
