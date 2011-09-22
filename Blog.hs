@@ -41,16 +41,16 @@ main = do
   simpleHTTP nullConf $
     implSite "/" "" site
 
-initAppState :: IO Application
+initAppState :: IO AppState
 initAppState = do
   posts <- openAcidState emptyPosts
   users <- openAcidState emptyUsers
   store <- BS.open "blobStore"
 
-  return $ MkApplication store users posts  
+  return $ MkAppState store users posts  
 
 -- gorier details
-mkSite :: Application -> Site Sitemap (ServerPartT IO Response)
+mkSite :: AppState -> Site Sitemap (ServerPartT IO Response)
 mkSite appState
     = setDefault Home
       $ mkSitePI

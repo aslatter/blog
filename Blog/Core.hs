@@ -9,7 +9,7 @@ module Blog.Core
     ( module Blog.Users.Core
     , module Blog.Posts.Core
     , module Blog.Sitemap
-    , Application(..)
+    , AppState(..)
     , AppDynamic(..)
     , App
     , runApp
@@ -43,8 +43,8 @@ import Text.Templating.Heist
 import Web.Routes (RouteT, mapRouteT)
 
 -- shared for all requests
-data Application
-    = MkApplication
+data AppState
+    = MkAppState
       { app_blobstore :: BlobStorage
       , app_users :: AcidState Users
       , app_posts :: AcidState Posts
@@ -61,9 +61,9 @@ emptyAppDynamic :: AppDynamic
 emptyAppDynamic = MkAppDynamic Nothing
 
 -- Woo!
-type App = RouteT Sitemap (ServerPartT (ReaderT Application (StateT AppDynamic IO)))
+type App = RouteT Sitemap (ServerPartT (ReaderT AppState (StateT AppDynamic IO)))
 
-runApp :: Application -> App a -> RouteT Sitemap (ServerPartT IO) a
+runApp :: AppState -> App a -> RouteT Sitemap (ServerPartT IO) a
 runApp appState m = mapRouteT mapFn m
  where
    mapFn =
