@@ -53,7 +53,7 @@ initAppState = do
 mkSite :: AppState -> Site Sitemap (ServerPartT IO Response)
 mkSite appState
     = setDefault Home
-      $ mkSitePI
+      $ mkSitePI'
       $ runRouteT
       $ runApp appState . route
 

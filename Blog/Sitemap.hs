@@ -27,7 +27,7 @@ import System.Locale (defaultTimeLocale, iso8601DateFormat)
 
 import Text.Parsec
 
-import Web.Routes (PathInfo(..), URLParser, pToken)
+import Web.Routes
 import Web.Routes.TH (derivePathInfo)
 
 data Sitemap
@@ -73,3 +73,17 @@ deriving instance PathInfo PostId
 derivePathInfo ''UserSite
 derivePathInfo ''PostSite
 derivePathInfo ''Sitemap
+
+-- TODO - port to web-routes package somehow
+-- | turn a routing function into a 'Site' value using the 'PathInfo' class
+mkSitePI' :: (PathInfo url) =>
+             ((url -> [(String, String)] -> String) -> url -> a) -- ^ a routing function
+          -> Site url a
+mkSitePI' handler =
+  Site { handleSite         = handler
+       , formatPathSegments = (\x -> (x, [])) . toPathSegments
+       , parsePathSegments  = parseSegments (fromPathSegments <* pEof)
+       }
+
+pEof :: URLParser ()
+pEof = notFollowedBy $ pToken "End of input" (\_ -> Just ())

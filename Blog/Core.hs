@@ -25,6 +25,7 @@ import Blog.Sitemap
     ( Sitemap(..)
     , PostSite(..)
     , UserSite(..)
+    , mkSitePI'
     )
 
 import Control.Monad.Reader
