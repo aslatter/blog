@@ -13,6 +13,8 @@ import qualified Text.Blaze.Html5.Attributes as A
 import Web.Routes
 import Web.Routes.Happstack
 
+-- 'Sitemap' is a parsed URL path.
+-- This function dispatches to our request handlers.
 route :: Sitemap -> App Response
 route url =
     case url of
@@ -31,7 +33,6 @@ route url =
       Post{} -> error "What the heck are posts?!?"
       User{} -> error "What the heck are users?!?"
 
--- gory details
 main :: IO ()
 main = do
   appState <- initAppState
@@ -41,6 +42,10 @@ main = do
   simpleHTTP nullConf $
     implSite "/" "" site
 
+-- The app-state is shared by all incoming
+-- requests/threads, and has references to
+-- databases and configuration and so on that
+-- the handlers use to service requests.
 initAppState :: IO AppState
 initAppState = do
   posts <- openAcidState emptyPosts
@@ -49,7 +54,8 @@ initAppState = do
 
   return $ MkAppState store users posts  
 
--- gorier details
+-- The 'Site' type is part of the web-routes package, and its
+-- first parameter is my Sitemap type.
 mkSite :: AppState -> Site Sitemap (ServerPartT IO Response)
 mkSite appState
     = setDefault Home
