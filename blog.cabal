@@ -22,11 +22,13 @@ Executable blog
 
                        acid-state == 0.5.*,
                        binary == 0.5.*,
+                       blaze-builder == 0.3.*,
                        blaze-html == 0.4.*,
                        blobstore == 0.*,
                        bytestring == 0.9.*,
                        cereal == 0.3.*,
                        containers == 0.4.*,
+                       happstack-heist == 6.0.*,
                        happstack-server == 6.2.*,
                        hashable == 1.1.*,
                        heist == 0.5.*,
@@ -39,7 +41,8 @@ Executable blog
                        unordered-containers == 0.1.*,
                        web-routes == 0.25.*,
                        web-routes-happstack == 0.22.*,
-                       web-routes-th == 0.20.*
+                       web-routes-th == 0.20.*,
+                       xmlhtml == 0.1.*
 
   Other-modules:       Blog.Core
                        Blog.Instances

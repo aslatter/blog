@@ -1,6 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 
 import Blog.Core
+import Blog.Templates
 
 import Control.Exception (bracket)
 import Control.Monad.Reader
@@ -19,18 +20,7 @@ import Web.Routes.Happstack
 route :: Sitemap -> App Response
 route url =
     case url of
-      Home ->
-          do
-            newPostURL <- showURL $ Post New
-            loginURL   <- showURL $ User UserLogin
-
-            ok $ toResponse $
-               docTypeHtml $
-               body $ do
-                 h1 "links"
-                 p $ a ! A.href (toValue newPostURL)  $ "New Post"
-                 p $ a ! A.href (toValue loginURL)    $ "Login"
-                          
+      Home   -> render "home"
       Post{} -> error "What the heck are posts?!?"
       User{} -> error "What the heck are users?!?"
 
@@ -39,9 +29,13 @@ main =
     withAppState $ \appState -> do
 
       let site = mkSite appState
+      let appAction = execAppAction site appState
 
       simpleHTTP nullConf $
-          implSite "/" "" site
+        msum
+          [ implSite "/" "" site
+          , appAction appNotFound
+          ]
 
 -- The app-state is shared by all incoming
 -- requests/threads, and has references to
@@ -50,14 +44,16 @@ main =
 initAppState :: IO AppState
 initAppState = do
   putStrLn "Starting up ..."
+
   posts <- openAcidState emptyPosts
   users <- openAcidState emptyUsers
   store <- BS.open "blobStore"
+  templates <- initTemplates "templates"
 
-  return $ MkAppState store users posts  
+  return $ MkAppState store users posts templates  
 
 closeAppState :: AppState -> IO ()
-closeAppState (MkAppState _ users posts) = do
+closeAppState (MkAppState _ users posts _) = do
   putStrLn "\nShutting down ..."
   closeAcidState users
   closeAcidState posts
@@ -74,4 +70,3 @@ mkSite appState
       $ mkSitePI'
       $ runRouteT
       $ runApp appState . route
-

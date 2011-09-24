@@ -13,10 +13,13 @@ module Blog.Core
     , AppDynamic(..)
     , App
     , runApp
+    , execAppAction
     , emptyAppDynamic
     , appBlobStore
     , appUsers
     , appPosts
+    , appTemplate
+    , appTemplateDirectory
     ) where
 
 import Blog.Users.Core (Users(..), UserId(..), emptyUsers)
@@ -40,8 +43,11 @@ import Happstack.Server (ServerPartT, mapServerPartT)
 
 import Text.Templating.Heist
     (TemplateState)
+import Text.Templating.Heist.TemplateDirectory
+    (TemplateDirectory, getDirectoryTS)
 
-import Web.Routes (RouteT, mapRouteT)
+import Web.Routes
+import Web.Routes.Happstack()
 
 -- shared for all requests
 data AppState
@@ -49,7 +55,7 @@ data AppState
       { app_blobstore :: BlobStorage
       , app_users :: AcidState Users
       , app_posts :: AcidState Posts
-      --, app_template :: TemplateState App
+      , app_template :: TemplateDirectory App
       }
 
 -- created within a single request
@@ -70,6 +76,22 @@ runApp appState m = mapRouteT mapFn m
    mapFn =
        mapServerPartT $ flip evalStateT emptyAppDynamic . flip runReaderT appState
 
+
+-- | Used to resolve smart URL using functions
+-- outside of a routing context.
+execRouteT :: Site url x -> RouteT url m a -> m a
+execRouteT site route =
+    let fn url query =
+            case formatPathSegments site url of
+              (path,_) -> encodePathInfo path query
+    in unRouteT route fn
+
+-- | Whereas 'runApp' is meant to be used in the context of routing,
+-- 'execAppAction' can be used outside of routing. The 'Site'
+-- parameter is only used for URL resolution.
+execAppAction :: Site Sitemap x -> AppState -> App a -> ServerPartT IO a
+execAppAction site appState = execRouteT site . runApp appState
+
 appBlobStore :: App BlobStorage
 appBlobStore = asks app_blobstore
 
@@ -79,7 +101,9 @@ appUsers = asks app_users
 appPosts :: App (AcidState Posts)
 appPosts = asks app_posts
 
-{-
 appTemplate :: App (TemplateState App)
-appTemplate = asks app_template
--}
+appTemplate = asks app_template >>= getDirectoryTS
+
+appTemplateDirectory :: App (TemplateDirectory App)
+appTemplateDirectory = asks app_template
+
