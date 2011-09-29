@@ -1,4 +1,4 @@
-<ignore> -*-Html-*- </ignore>
+<ignore>-*-Html-*-</ignore>
 <apply template="_layout">
   <bind tag="pageTitle">Antoine Latter</bind>
   <bind tag="header">Welcome to my blag!</bind>

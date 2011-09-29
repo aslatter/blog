@@ -1,6 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 
 import Blog.Core
+import Blog.Posts
 import Blog.Templates
 
 import Control.Exception (bracket)
@@ -21,7 +22,7 @@ route :: Sitemap -> App Response
 route url =
     case url of
       Home   -> render "home"
-      Post{} -> error "What the heck are posts?!?"
+      Post url -> postHandler url
       User{} -> error "What the heck are users?!?"
 
 main :: IO ()

@@ -12,18 +12,25 @@ with the templates.
 module Blog.Templates
     ( templateReloader
     , render
+    , renderBlaze
+    , renderWithText
     , initTemplates
     , appNotFound
     ) where
 
 import Blog.Core
 
-import Control.Applicative ((<$>))
 import Blaze.ByteString.Builder (toLazyByteString)
+import Control.Applicative ((<$>))
+import Control.Monad.Trans (MonadIO)
 import Data.ByteString (ByteString)
+import Data.Text (Text)
 import Happstack.Server
 import qualified Happstack.Server.Heist as H
+import Text.Blaze (Html)
+import Text.Blaze.Renderer.XmlHtml (renderHtmlNodes)
 import Text.Templating.Heist
+import Text.Templating.Heist.Splices.Html
 import Text.Templating.Heist.TemplateDirectory
 import Text.XmlHtml (Node(..))
 
@@ -42,10 +49,27 @@ renderInternal ts name = do
     Just (builder, mimeType) ->
         return $ toResponseBS mimeType $ toLazyByteString builder
 
+-- | Call a template in a modified environment.
 renderWith :: (TemplateState App -> TemplateState App) -> ByteString -> App Response
 renderWith f name = do
   ts <- appTemplate
   renderInternal (f ts) name
+
+-- | Call a template with the given arguments.
+renderWithText :: [(Text, Text)] -> ByteString -> App Response
+renderWithText splices =
+    let splices' = map fn splices
+        fn (key, val) = (key, textSplice val)
+    in renderWith (bindSplices splices')
+
+-- | Call a template with the given markup spliced into the
+-- "content" tag.
+renderBlaze :: [(Text, Text)] -> ByteString -> Html -> App Response
+renderBlaze splices template content =
+    let contentSplice = return $ renderHtmlNodes content
+        splices' = ("content", contentSplice) : map fn splices
+        fn (key, val) = (key, textSplice val)
+    in renderWith (bindSplices splices') template
 
 -- | Ping this handler to refresh the templates from disk.
 templateReloader :: App Response
@@ -54,12 +78,14 @@ templateReloader =
 
 -- | Build the initial template state information, given
 -- the path to the templates folder.
-initTemplates :: FilePath -> IO (TemplateDirectory App)
+initTemplates :: MonadIO m => FilePath -> IO (TemplateDirectory m)
 initTemplates templateDir = do
-  let ts = bindSplices splices
-           $ emptyTemplateState templateDir
+  let ts = bindSplices splices $
+           emptyTemplateState templateDir
   newTemplateDirectory' templateDir ts
 
+-- | Default splices we make available.
+splices :: Monad m => [(Text, Splice m)]
 splices =
     [ ("header", headerSplice)
     ]
