@@ -54,8 +54,7 @@ postHandler New = do
       Left form -> do
           let (renderedForm,_) = renderFormHtml form
           renderBlaze
-            [ ("pageTitle","New Post")
-            -- , ("content","Coming Soon!")
+            [ ("pageTitle", "New Post")
             ]
             "_layout"
             $ do

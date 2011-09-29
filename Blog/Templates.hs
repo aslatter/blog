@@ -24,6 +24,7 @@ import Blaze.ByteString.Builder (toLazyByteString)
 import Control.Applicative ((<$>))
 import Control.Monad.Trans (MonadIO)
 import Data.ByteString (ByteString)
+import Data.String (fromString)
 import Data.Text (Text)
 import Happstack.Server
 import qualified Happstack.Server.Heist as H
@@ -88,7 +89,12 @@ initTemplates templateDir = do
 splices :: Monad m => [(Text, Splice m)]
 splices =
     [ ("header", headerSplice)
+    , missing "pageTitle"
+    , missing "content"
     ]
+
+missing name =
+    (fromString name, fail $ "Missing splice '" ++ name ++ "'!") 
 
 -- | By default, the "header" tag shows the page title.
 headerSplice :: Monad m => Splice m
