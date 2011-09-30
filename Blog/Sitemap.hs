@@ -68,8 +68,6 @@ instance PathInfo PathDay where
          parseReadS "valid date"
            (readsTime defaultTimeLocale (iso8601DateFormat Nothing))
 
-deriving instance PathInfo PostId
-
 derivePathInfo ''UserSite
 derivePathInfo ''PostSite
 derivePathInfo ''Sitemap

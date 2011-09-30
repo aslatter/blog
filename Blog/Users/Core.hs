@@ -44,6 +44,7 @@ data Users
    }
   deriving (Typeable)
 
+emptyUsers :: Users
 emptyUsers =
     MkUsers
     { users_by_id = mempty

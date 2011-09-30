@@ -1,4 +1,4 @@
-
+{-# OPTIONS_GHC -fno-warn-orphans #-}
 module Blog.Instances() where
 
 import Database.BlobStorage (BlobId)
@@ -10,7 +10,6 @@ import qualified Data.HashSet as HS
 import Data.SafeCopy
 import qualified Data.Serialize as C
 import qualified Data.Text as T
-import qualified Data.Time as Time
 import Data.Word
 
 import qualified Web.Routes as WR

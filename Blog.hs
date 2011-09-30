@@ -6,13 +6,10 @@ import Blog.Templates
 
 import Control.Exception (bracket)
 import Control.Monad.Reader
-import Control.Monad.State.Strict
 import Data.Acid
 import qualified Database.BlobStorage as BS
 import Happstack.Server
     hiding (body)
-import Text.Blaze.Html5 hiding (map)
-import qualified Text.Blaze.Html5.Attributes as A
 import Web.Routes
 import Web.Routes.Happstack
 
@@ -22,7 +19,7 @@ route :: Sitemap -> App Response
 route url =
     case url of
       Home   -> render "home"
-      Post url -> postHandler url
+      Post postUrl -> postHandler postUrl
       User{} -> error "What the heck are users?!?"
 
 main :: IO ()
@@ -60,8 +57,8 @@ closeAppState (MkAppState _ users posts _) = do
   closeAcidState posts
 
 withAppState :: (AppState -> IO a) -> IO a
-withAppState k =
-    bracket initAppState closeAppState k
+withAppState =
+    bracket initAppState closeAppState
 
 -- The 'Site' type is part of the web-routes package, and its
 -- first parameter is my Sitemap type.

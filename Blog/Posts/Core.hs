@@ -28,6 +28,7 @@ import qualified Data.Text as T
 import Data.Time
 import Data.Typeable (Typeable)
 import Data.Word
+import Web.Routes (PathInfo)
 
 {-
 
@@ -79,7 +80,8 @@ postDay :: PostLike post => post -> Day
 postDay = localDay . zonedTimeToLocalTime . insert_time . toPostInsert
 
 newtype PostId = MkPostId Word32
-  deriving (Eq, Ord, Show, Read, Hashable, SafeCopy, Typeable, Data)
+  deriving (Eq, Ord, Show, Read, Hashable,
+              SafeCopy, Typeable, Data, PathInfo)
 
 data Posts =
  MkPosts {
@@ -219,7 +221,7 @@ postById :: PostId -> Query Posts (Maybe Post)
 postById = undefined
 
 paginatePosts :: Int -> Int -> Query Posts [Post]
-paginatePosts start rows = undefined
+paginatePosts _start _rows = undefined
 
 deriveSafeCopy 1 'base ''Post
 deriveSafeCopy 1 'base ''PostInsert

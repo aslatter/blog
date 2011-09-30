@@ -27,11 +27,12 @@ import Data.ByteString (ByteString)
 import Data.String (fromString)
 import Data.Text (Text)
 import Happstack.Server
+    ( Response, toResponse, setResponseCode, toResponseBS
+    , internalServerError )
 import qualified Happstack.Server.Heist as H
 import Text.Blaze (Html)
 import Text.Blaze.Renderer.XmlHtml (renderHtmlNodes)
 import Text.Templating.Heist
-import Text.Templating.Heist.Splices.Html
 import Text.Templating.Heist.TemplateDirectory
 import Text.XmlHtml (Node(..))
 
@@ -81,24 +82,25 @@ templateReloader =
 -- the path to the templates folder.
 initTemplates :: MonadIO m => FilePath -> IO (TemplateDirectory m)
 initTemplates templateDir = do
-  let ts = bindSplices splices $
+  let ts = bindSplices appSplices $
            emptyTemplateState templateDir
   newTemplateDirectory' templateDir ts
 
 -- | Default splices we make available.
-splices :: Monad m => [(Text, Splice m)]
-splices =
+appSplices :: Monad m => [(Text, Splice m)]
+appSplices =
     [ ("header", headerSplice)
     , missing "pageTitle"
     , missing "content"
     ]
 
+missing :: Monad m => String -> (Text, Splice m)
 missing name =
     (fromString name, fail $ "Missing splice '" ++ name ++ "'!") 
 
 -- | By default, the "header" tag shows the page title.
 headerSplice :: Monad m => Splice m
-headerSplice = return $ [Element "pageTitle" [] []]
+headerSplice = return [Element "pageTitle" [] []]
 
 -- | Serve up a 404 response.
 -- Note: this will succeed even if templates aren't

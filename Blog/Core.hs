@@ -6,9 +6,7 @@ as well as the associated monad for manipulating it.
 
 -}
 module Blog.Core
-    ( module Blog.Users.Core
-    , module Blog.Posts.Core
-    , module Blog.Sitemap
+    ( module Xport
     , AppState(..)
     , AppDynamic(..)
     , App
@@ -22,9 +20,9 @@ module Blog.Core
     , appTemplateDirectory
     ) where
 
-import Blog.Users.Core (Users(..), UserId(..), emptyUsers)
-import Blog.Posts.Core (Posts(..), emptyPosts)
-import Blog.Sitemap
+import Blog.Users.Core as Xport (Users(..), UserId(..), emptyUsers)
+import Blog.Posts.Core as Xport (Posts(..), emptyPosts)
+import Blog.Sitemap as Xport
     ( Sitemap(..)
     , PostSite(..)
     , UserSite(..)
@@ -35,17 +33,12 @@ import Control.Monad.Reader
 import Control.Monad.State.Strict
 
 import Database.BlobStorage
-
 import Data.Acid
-import Data.Monoid (mempty)
-
 import Happstack.Server (ServerPartT, mapServerPartT)
-
 import Text.Templating.Heist
     (TemplateState)
 import Text.Templating.Heist.TemplateDirectory
     (TemplateDirectory, getDirectoryTS)
-
 import Web.Routes
 import Web.Routes.Happstack()
 
@@ -81,9 +74,9 @@ runApp appState m = mapRouteT mapFn m
 -- outside of a routing context.
 execRouteT :: Site url x -> RouteT url m a -> m a
 execRouteT site route =
-    let fn url query =
+    let fn url q1 =
             case formatPathSegments site url of
-              (path,_) -> encodePathInfo path query
+              (path,q2) -> encodePathInfo path (q1 ++ q2)
     in unRouteT route fn
 
 -- | Whereas 'runApp' is meant to be used in the context of routing,

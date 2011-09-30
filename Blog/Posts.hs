@@ -8,14 +8,12 @@ import Blog.Core
 import Blog.Templates
 
 import Control.Applicative ((<$>), (<*>))
-import Data.Text (Text)
 import Data.Time (Day)
 import Text.Blaze.Html5 (Html, (!), toValue)
 import qualified Text.Blaze.Html5 as H
 import qualified Text.Blaze.Html5.Attributes as A
 import Text.Digestive ((++>), (<++))
 import Text.Digestive.Blaze.Html5
-import qualified Text.Digestive.Forms as Forms
 import Text.Digestive.Forms.Happstack
 import Happstack.Server
 
@@ -49,7 +47,7 @@ postForm =
 postHandler :: PostSite -> App Response
 postHandler New = do
     decodeBody $ defaultBodyPolicy "tmp" (1024*1024) (20*1024) (2*1024)
-    r <- (eitherHappstackForm postForm "new-post" :: App (Either BlazeFormHtml PostContent))
+    r <- eitherHappstackForm postForm "new-post" :: App (Either BlazeFormHtml PostContent)
     case r of
       Left form -> do
           let (renderedForm,_) = renderFormHtml form
@@ -57,8 +55,7 @@ postHandler New = do
             [ ("pageTitle", "New Post")
             ]
             "_layout"
-            $ do
-              H.form ! A.method (toValue ("POST"::String)) $
+            $ H.form ! A.method (toValue ("POST"::String)) $
                do
                  renderedForm
                  H.input ! A.type_ "submit"
