@@ -42,7 +42,7 @@ Executable blog
                        time == 1.2.*,
                        text == 0.11.*,
                        unordered-containers == 0.1.*,
-                       web-routes == 0.25.*,
+                       web-routes >= 0.25.3 && < 0.26,
                        web-routes-happstack == 0.22.*,
                        web-routes-th == 0.20.*,
                        xmlhtml == 0.1.*
