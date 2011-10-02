@@ -8,11 +8,12 @@ import Blog.Core
 import Blog.Templates
 
 import Control.Applicative ((<$>), (<*>))
-import Data.Time (Day)
+import Data.Monoid (mempty, Monoid)
+import Data.Time (Day, TimeOfDay)
 import Text.Blaze.Html5 (Html, (!), toValue)
 import qualified Text.Blaze.Html5 as H
 import qualified Text.Blaze.Html5.Attributes as A
-import Text.Digestive ((++>), (<++))
+import Text.Digestive ((++>), (<++), check, Validator, validate)
 import Text.Digestive.Blaze.Html5
 import Text.Digestive.Forms.Happstack
 import Happstack.Server
@@ -20,29 +21,30 @@ import Happstack.Server
 data PostContent =
     MkPostContent
     { postTitle :: String
-    , postTime :: Day
-    , postBody :: String
+    , postDay   :: Day
+    , postTime  :: TimeOfDay
+    , postBody  :: String
     }
 
-{-
-inputDate :: (Monad m, Functor m, FormInput i f)
-             => Formlet m i e BlazeFormHtml Day
-inputDate err =
-    Forms.inputRead err $ \id' inp ->
-    createFormHtml $ \cfg ->
-        applyClasses' [htmlInputClasses] cfg $
-            H.input ! A.type_ "date"
-                    ! A.name (toValue $ show id') 
-                    ! A.id (toValue $ show id')
-                    ! A.value (toValue $ fromMaybe "" inp)
--}
+type AppForm a = HappstackForm App Html BlazeFormHtml a
 
-postForm :: HappstackForm App Html BlazeFormHtml PostContent
+postForm :: AppForm PostContent
 postForm =
     MkPostContent
-      <$> label "Title: " ++> inputText Nothing <++ errors
+      <$> label "Title: " ++> titleForm Nothing <++ errors
       <*> label "Date:  " ++> inputTextRead "Invalid date" Nothing <++ errors
+      <*> label "Time: "  ++> inputTextRead "Invalid time" Nothing <++ errors 
       <*> inputTextArea Nothing Nothing Nothing <++ errors
+
+titleForm :: Maybe String -> AppForm String
+titleForm title =
+    flip validate (required "A title is required") $
+    inputText title
+
+required :: (Monoid a, Eq a, Monad m) =>
+            errMsg
+         ->  Validator m errMsg a
+required e = check e (/= mempty)
 
 postHandler :: PostSite -> App Response
 postHandler New = do

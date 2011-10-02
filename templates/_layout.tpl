@@ -2,6 +2,7 @@
 <html>
 <head>
   <title><pageTitle /></title>
+  <link rel=stylesheet type="text/css" href="/css/site.css">
 </head>
 <body>
   <h1><header /></h1>
