@@ -1,4 +1,4 @@
-{-# LANGUAGE GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE GeneralizedNewtypeDeriving, TypeFamilies #-}
 {-|
 
 This module defines the main 'Application' type,
@@ -8,11 +8,9 @@ as well as the associated monad for manipulating it.
 module Blog.Core
     ( module Xport
     , AppState(..)
-    , AppDynamic(..)
     , App
     , runApp
     , execAppAction
-    , emptyAppDynamic
     , appBlobStore
     , appUsers
     , appPosts
@@ -21,7 +19,7 @@ module Blog.Core
     ) where
 
 import Blog.Users.Core as Xport (Users(..), UserId(..), emptyUsers)
-import Blog.Posts.Core as Xport (Posts(..), emptyPosts)
+import Blog.Posts.Core as Xport (Posts(..), emptyPosts, PostInsert(..), PostId)
 import Blog.Sitemap as Xport
     ( Sitemap(..)
     , PostSite(..)
@@ -29,12 +27,16 @@ import Blog.Sitemap as Xport
     , mkSitePI'
     )
 
+import Control.Applicative (Alternative, Applicative)
 import Control.Monad.Reader
 import Control.Monad.State.Strict
-
 import Database.BlobStorage
+import Database.BlobStorage as Xport (BlobId)
 import Data.Acid
-import Happstack.Server (ServerPartT, mapServerPartT)
+import Happstack.Server
+    (ServerPartT, mapServerPartT,
+     ServerMonad, FilterMonad, Response, WebMonad, HasRqData)
+import Happstack.Server.TinyAuth as Xport
 import Text.Templating.Heist
     (TemplateState)
 import Text.Templating.Heist.TemplateDirectory
@@ -51,23 +53,29 @@ data AppState
       , app_template :: TemplateDirectory App
       }
 
--- created within a single request
-data AppDynamic
-    = MkAppDynamic
-      { app_user :: Maybe UserId
-      }
-
-emptyAppDynamic :: AppDynamic
-emptyAppDynamic = MkAppDynamic Nothing
-
 -- Woo!
-type App = RouteT Sitemap (ServerPartT (ReaderT AppState (StateT AppDynamic IO)))
+newtype App a =
+    App { unApp :: RouteT Sitemap (ServerPartT (ReaderT AppState IO)) a }
+ deriving (ServerMonad, FilterMonad Response, WebMonad Response, HasRqData,
+           Monad, Functor, Applicative, Alternative, MonadPlus, MonadIO,
+           MonadReader AppState)
+-- I dream of a future happstack where 'ServerMonad, FilterMonad Response,
+-- WebMonad Response, HasRqData' are all summed up with 'ServerMonad'
+instance ShowURL App where
+    type URL App = Sitemap
+    showURLParams url = App . showURLParams url
+
+
+instance AuthMonad App where
+    getAuthState = do
+      loginUrl <- showURL $ User UserLogin
+      return $ defaultAuthState {loginForm = loginUrl}
 
 runApp :: AppState -> App a -> RouteT Sitemap (ServerPartT IO) a
-runApp appState m = mapRouteT mapFn m
+runApp appState (App m) = mapRouteT mapFn m
  where
    mapFn =
-       mapServerPartT $ flip evalStateT emptyAppDynamic . flip runReaderT appState
+       mapServerPartT $ flip runReaderT appState
 
 
 -- | Used to resolve smart URL using functions
