@@ -3,13 +3,16 @@
 import Blog.Core
 import Blog.Posts
 import Blog.Templates
+import Blog.Users
 
 import Control.Exception (bracket)
 import Control.Monad.Reader
 import Data.Acid
+import Data.List ((!!))
 import qualified Database.BlobStorage as BS
 import Happstack.Server
     hiding (body)
+import System.Environment (getArgs)
 import Web.Routes
 import Web.Routes.Happstack
 
@@ -18,12 +21,26 @@ import Web.Routes.Happstack
 route :: Sitemap -> App Response
 route url =
     case url of
-      Home   -> render "home"
+      Home         -> render "home"
       Post postUrl -> postHandler postUrl
-      User{} -> error "What the heck are users?!?"
+      User userUrl -> userHandler userUrl
 
 main :: IO ()
-main =
+main = do
+  args <- getArgs
+  if (length args == 2)
+   then addUser (args!!0) (args!!1) 
+   else site
+
+addUser :: String -> String -> IO ()
+addUser name pword =
+    withAppState $ \appState -> do
+      
+      addUserFromPlaintext name pword $ app_users appState
+      return ()
+
+site :: IO ()
+site =
     withAppState $ \appState -> do
 
       let site = mkSite appState

@@ -16,9 +16,12 @@ module Blog.Core
     , appPosts
     , appTemplate
     , appTemplateDirectory
+    , setLoggedIn, forwardAfterLogin
+    , requireLoggedIn, refreshLoggedIn
+    , setLoggedOut, loginData
     ) where
 
-import Blog.Users.Core as Xport (Users(..), UserId(..), emptyUsers)
+import Blog.Users.Core as Xport (Users(..), UserId(..), emptyUsers, User(..))
 import Blog.Posts.Core as Xport (Posts(..), emptyPosts, PostInsert(..), PostId)
 import Blog.Sitemap as Xport
     ( Sitemap(..)
@@ -36,7 +39,7 @@ import Data.Acid
 import Happstack.Server
     (ServerPartT, mapServerPartT,
      ServerMonad, FilterMonad, Response, WebMonad, HasRqData)
-import Happstack.Server.TinyAuth as Xport
+import Happstack.Server.TinyAuth
 import Text.Templating.Heist
     (TemplateState)
 import Text.Templating.Heist.TemplateDirectory

@@ -21,6 +21,7 @@ Executable blog
   Build-depends:       base,
 
                        acid-state == 0.5.*,
+                       bcrypt == 0.0.*,
                        binary == 0.5.*,
                        blaze-builder == 0.3.*,
                        blaze-html == 0.4.*,

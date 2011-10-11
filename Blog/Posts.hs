@@ -5,6 +5,7 @@ module Blog.Posts
     ) where
 
 import Blog.Core
+import Blog.Forms
 import qualified Blog.Posts.Core as P
 import Blog.Templates
 
@@ -62,7 +63,6 @@ createPost user tz pc = do
    localTime = LocalTime (postDay pc) (postTime pc)
    zonedTime = ZonedTime localTime tz
 
-type AppForm a = HappstackForm App Html BlazeFormHtml a
 
 postForm :: AppForm PostContent
 postForm =
@@ -74,13 +74,8 @@ postForm =
 
 titleForm :: Maybe String -> AppForm String
 titleForm title =
-    flip validate (required "A title is required") $
+    mkRequired "A title is required" $
     inputText title
-
-required :: (Monoid a, Eq a, Monad m) =>
-            errMsg
-         ->  Validator m errMsg a
-required e = check e (/= mempty)
 
 -- The handler
 

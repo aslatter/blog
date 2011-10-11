@@ -4,6 +4,7 @@ module Blog.Users.Core where
 
 import Blog.Instances()
 
+import Control.Monad (when)
 import Control.Monad.State.Class (get, put, modify)
 import Control.Monad.Reader.Class (asks)
 import Data.Acid
@@ -85,6 +86,26 @@ userById ident = asks $ H.lookup ident . users_by_id
 userIdByLogin :: Text -> Query Users (Maybe UserId)
 userIdByLogin login = asks $ M.lookup login . users_by_name
 
+-- | Returns false if the user does not exist.
+updateUser :: UserId -> (User -> User) -> Update Users Bool
+updateUser userId fn = do
+  userM <- runQuery $ userById userId
+  case userM of
+    Nothing -> return False
+    Just user
+        -> do
+      let user' = fn user
+      when (user_login user /= user_login user') $
+           error "Updating user login not supported"
+      modify $ \users ->
+          let newMap = H.insert userId user' $ users_by_id users
+          in  users {users_by_id = newMap}
+      return True
+
+-- | Returns false if the user does not exist
+setLoginHash :: UserId -> ByteString -> Update Users Bool
+setLoginHash userId pwHash =
+    updateUser userId $ \user -> user {user_pwordhash = pwHash}
 
 deriveSafeCopy 1 'base ''User
 deriveSafeCopy 1 'base ''Users
@@ -93,4 +114,5 @@ makeAcidic ''Users
            [ 'newUser
            , 'userById
            , 'userIdByLogin
+           , 'setLoginHash
            ]
