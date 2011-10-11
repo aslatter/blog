@@ -173,7 +173,6 @@ unsafeInsertPostById postIns postIdent = do
             , posts_by_time = updateSet postIdent utcTime (posts_by_time posts)
             , posts_by_id = HM.insert postIdent post (posts_by_id posts)
             }
-  undefined
  where
    updateSet :: (Ord key, Eq val, Hashable val) =>
                 val -> key ->
