@@ -27,7 +27,6 @@ import Blog.Sitemap as Xport
     ( Sitemap(..)
     , PostSite(..)
     , UserSite(..)
-    , mkSitePI'
     )
 
 import Control.Applicative (Alternative, Applicative)
