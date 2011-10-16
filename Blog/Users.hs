@@ -80,15 +80,12 @@ coreAuthUser name pword = do
   userM <- userByLogin name
   case userM of
     Nothing -> do
-        liftIO $ putStrLn "Failed to resolve user name"
         return Nothing
     Just (user, userId)
         -> do
       let hashed = user_pwordhash user
           success = BC.validatePassword hashed pword
           byPolicy = BC.hashUsesPolicy hashingPolicy hashed
-      when success $
-           liftIO $ putStrLn "Successful auth!"
       when (success && not byPolicy) $ do
         -- re-hash with current policy
         reHashed <- liftIO $ hashPassword pword

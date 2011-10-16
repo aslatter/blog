@@ -8,7 +8,6 @@ import Blog.Users
 import Control.Exception (bracket)
 import Control.Monad.Reader
 import Data.Acid
-import Data.List ((!!))
 import qualified Database.BlobStorage as BS
 import Happstack.Server
     hiding (body)
@@ -35,19 +34,19 @@ main = do
 addUser :: String -> String -> IO ()
 addUser name pword =
     withAppState $ \appState -> do
-      addUserFromPlaintext name pword $ app_users appState
+      void $ addUserFromPlaintext name pword $ app_users appState
       return ()
 
 site :: IO ()
 site =
     withAppState $ \appState -> do
 
-      let site = mkSite appState
-      let appAction = execAppAction site appState
+      let appSite = mkSite appState
+      let appAction = execAppAction appSite appState
 
       simpleHTTP nullConf $
         msum
-          [ implSite "/" "" site
+          [ implSite "/" "" appSite
           , serveDirectory DisableBrowsing [] "static"
           , appAction appNotFound
           ]
