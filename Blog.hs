@@ -35,7 +35,6 @@ main = do
 addUser :: String -> String -> IO ()
 addUser name pword =
     withAppState $ \appState -> do
-      
       addUserFromPlaintext name pword $ app_users appState
       return ()
 

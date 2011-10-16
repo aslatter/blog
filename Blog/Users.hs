@@ -24,8 +24,7 @@ import Text.Blaze.Html5 (Html, (!), toValue)
 import qualified Text.Blaze.Html5 as H
 import qualified Text.Blaze.Html5.Attributes as A
 import Text.Digestive
-    ((++>), (<++), check, Validator, validate,
-     Transformer, transformEitherM, transform)
+    ((++>), Transformer, transformEitherM, transform)
 import Text.Digestive.Blaze.Html5
 import Text.Digestive.Forms.Happstack
 
@@ -131,8 +130,8 @@ authenticate =
     transformEitherM $ \login -> do
       let userName = T.pack $ login_username login
           pword = T.encodeUtf8 . T.pack $ login_password login
-      result <- coreAuthUser userName pword
-      case result of
+      authResult <- coreAuthUser userName pword
+      case authResult of
         Just userId -> return . Right $ userId
         Nothing -> return . Left $ "Incorrect username or password!"
 
@@ -144,7 +143,6 @@ userHandler UserLogin = do
   r <- eitherHappstackForm loginForm "login"
   case r of
     Left form -> do
-        setResponseCode 401
         let (renderedForm,_) = renderFormHtml form
         renderBlaze
           [ ("pageTitle", "Login")

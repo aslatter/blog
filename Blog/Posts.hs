@@ -12,7 +12,6 @@ import Blog.Templates
 import Control.Applicative ((<$>), (<*>))
 import Control.Monad.Trans (liftIO)
 import qualified Data.ByteString.Lazy as LBS
-import Data.Monoid (mempty, Monoid)
 import Data.Acid (update)
 import Data.Text (Text)
 import Data.Text.Encoding (encodeUtf8)
@@ -21,13 +20,13 @@ import Data.Time
     (Day, TimeOfDay, TimeZone, LocalTime(..), ZonedTime(..),
      getCurrentTimeZone)
 import qualified Database.BlobStorage as Store
-import Text.Blaze.Html5 (Html, (!), toValue)
+import Text.Blaze.Html5 ((!), toValue)
 import qualified Text.Blaze.Html5 as H
 import qualified Text.Blaze.Html5.Attributes as A
-import Text.Digestive ((++>), (<++), check, Validator, validate)
+import Text.Digestive ((++>), (<++))
 import Text.Digestive.Blaze.Html5
 import Text.Digestive.Forms.Happstack
-import Happstack.Server
+import Happstack.Server (Response, decodeBody, defaultBodyPolicy)
 
 -- Primitve operations
 
@@ -36,12 +35,11 @@ insertPost pc = do
   p <- appPosts
   liftIO $ update p $ P.InsertPost pc
 
-toLazyBS = LBS.fromChunks . return
-
 storePostBody :: Text -> App BlobId
 storePostBody body = do
   b <- appBlobStore
   liftIO $ Store.add b $ toLazyBS $ encodeUtf8 body
+ where toLazyBS = LBS.fromChunks . return
 
 -- Forms & form data
 

@@ -31,7 +31,6 @@ import Blog.Sitemap as Xport
 
 import Control.Applicative (Alternative, Applicative)
 import Control.Monad.Reader
-import Control.Monad.State.Strict
 import Database.BlobStorage
 import Database.BlobStorage as Xport (BlobId)
 import Data.Acid
