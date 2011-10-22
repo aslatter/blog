@@ -48,6 +48,7 @@ data PostInsert =
 
 data Post =
  MkPost {
+  post_id :: PostId,
   post_time :: ZonedTime,
   post_short_name :: Text,
   post_title :: Text,
@@ -162,7 +163,8 @@ unsafeInsertPostById postIns postIdent = do
   shortTitle <- runQuery $ createPostTitle postIns
   let post =
           MkPost
-          { post_time = insert_time postIns
+          { post_id = postIdent
+          , post_time = insert_time postIns
           , post_author = insert_author postIns
           , post_title = insert_title postIns
           , post_body = insert_body postIns
