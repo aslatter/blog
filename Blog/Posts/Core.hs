@@ -226,7 +226,7 @@ paginatePosts :: Int -- ^ Zero indexed post to start with
               -> Query Posts [Post]
 paginatePosts start rows =
     asks $ \posts ->
-    let sets = map snd $ M.toList (posts_by_time posts)
+    let sets = map snd $ M.toDescList (posts_by_time posts)
         idList = concatMap HS.toList sets
         postList = mapMaybe (flip HM.lookup (posts_by_id posts)) idList
     in take rows $ drop start postList

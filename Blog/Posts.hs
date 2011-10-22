@@ -2,6 +2,8 @@
 
 module Blog.Posts
     ( postHandler
+    , paginatePosts
+    , getPostBody
     ) where
 
 import Blog.Core
@@ -12,9 +14,10 @@ import Blog.Templates
 import Control.Applicative ((<$>), (<*>))
 import Control.Monad.Trans (liftIO)
 import qualified Data.ByteString.Lazy as LBS
-import Data.Acid (update)
+import Data.Acid (update', query')
+import Data.Monoid (mconcat)
 import Data.Text (Text)
-import Data.Text.Encoding (encodeUtf8)
+import Data.Text.Encoding (encodeUtf8, decodeUtf8)
 import qualified Data.Text as T
 import Data.Time
     (Day, TimeOfDay, TimeZone, LocalTime(..), ZonedTime(..),
@@ -33,7 +36,7 @@ import Happstack.Server (Response, decodeBody, defaultBodyPolicy)
 insertPost :: PostInsert -> App PostId
 insertPost pc = do
   p <- appPosts
-  liftIO $ update p $ P.InsertPost pc
+  update' p $ P.InsertPost pc
 
 storePostBody :: Text -> App BlobId
 storePostBody body = do
@@ -41,14 +44,26 @@ storePostBody body = do
   liftIO $ Store.add b $ toLazyBS $ encodeUtf8 body
  where toLazyBS = LBS.fromChunks . return
 
+getPostBody :: P.Post -> App Text
+getPostBody post = do
+  b <- appBlobStore
+  bytes <- liftIO $ Store.fetch b (P.post_body post)
+  return $ decodeUtf8 $ fromLazyBs bytes
+ where fromLazyBs = mconcat . LBS.toChunks
+
+paginatePosts :: Int -> Int -> App [P.Post]
+paginatePosts start rows = do
+  p <- appPosts
+  query' p $ P.PaginatePosts start rows
+
 -- Forms & form data
 
 data PostContent =
     MkPostContent
-    { postTitle :: String
-    , postDay   :: Day
-    , postTime  :: TimeOfDay
-    , postBody  :: String
+    { pc_title :: String
+    , pc_day   :: Day
+    , pc_time  :: TimeOfDay
+    , pc_body  :: String
     }
 
 createPost :: UserId -> TimeZone -> PostContent -> App PostInsert
@@ -56,9 +71,9 @@ createPost user tz pc = do
   blob <- storePostBody body
   return $ MkInsert zonedTime title user blob
  where
-   title = T.pack $ postTitle pc
-   body  = T.pack $ postBody pc
-   localTime = LocalTime (postDay pc) (postTime pc)
+   title = T.pack $ pc_title pc
+   body  = T.pack $ pc_body pc
+   localTime = LocalTime (pc_day pc) (pc_time pc)
    zonedTime = ZonedTime localTime tz
 
 

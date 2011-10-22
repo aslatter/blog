@@ -22,11 +22,12 @@ module Blog.Core
     ) where
 
 import Blog.Users.Core as Xport (Users(..), UserId(..), emptyUsers, User(..))
-import Blog.Posts.Core as Xport (Posts(..), emptyPosts, PostInsert(..), PostId)
+import Blog.Posts.Core as Xport (Posts(..), emptyPosts, PostInsert(..), PostId, Post(..), postDay)
 import Blog.Sitemap as Xport
     ( Sitemap(..)
     , PostSite(..)
     , UserSite(..)
+    , PathDay(..)
     )
 
 import Control.Applicative (Alternative, Applicative)

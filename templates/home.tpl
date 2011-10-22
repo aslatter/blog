@@ -4,4 +4,5 @@
   <bind tag="header">Welcome to my blag!</bind>
   <p>Hey folks, you've found your way to the right place.
   <p>Eventually things will look good around here.
+   <content/>
 </apply>
