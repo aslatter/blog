@@ -1,3 +1,7 @@
-dist
-cabal-dev
-state
+/dist
+/cabal-dev
+/state
+/blobStore
+/client_session_key.aes
+/report.html
+
