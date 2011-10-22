@@ -137,21 +137,8 @@ authenticate =
 userHandler :: UserSite -> App Response
 userHandler UserLogin = do
   decodeBody $ defaultBodyPolicy "tmp" (1024*1024) (20*1024) (2*1024)
-  r <- eitherHappstackForm loginForm "login"
-  case r of
-    Left form -> do
-        let (renderedForm,_) = renderFormHtml form
-        renderBlaze
-          [ ("pageTitle", "Login")
-          ]
-          "_layout"
-          $ H.form ! A.method (toValue ("POST"::String)) $
-            do
-              renderedForm
-              H.input ! A.type_ "submit"
-    Right userId
-        -> do
-           setLoggedIn userId
-           forwardAfterLogin "/"
+  userId <- handleForm "Login" loginForm
+  setLoggedIn userId
+  forwardAfterLogin "/"
 
 userHandler _ = error "What?!?!"

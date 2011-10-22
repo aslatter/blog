@@ -29,7 +29,7 @@ import qualified Text.Blaze.Html5.Attributes as A
 import Text.Digestive ((++>), (<++))
 import Text.Digestive.Blaze.Html5
 import Text.Digestive.Forms.Happstack
-import Happstack.Server (Response, decodeBody, defaultBodyPolicy)
+import Happstack.Server (Response, decodeBody, defaultBodyPolicy, finishWith)
 
 -- Primitve operations
 
@@ -96,26 +96,16 @@ postHandler :: PostSite -> App Response
 postHandler New = do
     user <- requireLoggedIn
     decodeBody $ defaultBodyPolicy "tmp" (1024*1024) (20*1024) (2*1024)
-    r <- eitherHappstackForm postForm "new-post" :: App (Either BlazeFormHtml PostContent)
-    case r of
-      Left form -> do
-          let (renderedForm,_) = renderFormHtml form
-          renderBlaze
-            [ ("pageTitle", "New Post")
-            ]
-            "_layout"
-            $ H.form ! A.method (toValue ("POST"::String)) $
-               do
-                 renderedForm
-                 H.input ! A.type_ "submit"
-      Right postContent -> do
-           tz <- liftIO getCurrentTimeZone
-           newPost <- createPost user tz postContent
-           _ <- insertPost newPost
-           renderWithText
-            [ ("pageTitle", "Thanks!")
-            , ("content", "Your post has been submitted!")
-            ]
-            "_layout"
-          
+
+    postContent <- handleForm "New Post" postForm
+
+    tz <- liftIO getCurrentTimeZone
+    newPost <- createPost user tz postContent
+    _ <- insertPost newPost
+    renderWithText
+      [ ("pageTitle", "Thanks!")
+      , ("content", "Your post has been submitted!")
+      ]
+      "_layout"
+  
 postHandler _ = error "Nothing to see here"
