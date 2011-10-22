@@ -20,7 +20,7 @@ import qualified Data.HashMap.Strict as HM
 import Data.HashSet (HashSet)
 import qualified Data.HashSet as HS
 import qualified Data.Map as M
-import Data.Maybe (catMaybes)
+import Data.Maybe (catMaybes, mapMaybe)
 import Data.Monoid (mappend, mempty)
 import Data.SafeCopy
 import Data.Text (Text)
@@ -217,10 +217,17 @@ deletePost pid = do
 
 
 postById :: PostId -> Query Posts (Maybe Post)
-postById = undefined
+postById postId = asks $ \posts -> HM.lookup postId (posts_by_id posts)
 
-paginatePosts :: Int -> Int -> Query Posts [Post]
-paginatePosts _start _rows = undefined
+paginatePosts :: Int -- ^ Zero indexed post to start with
+              -> Int -- ^ Number of posts to return 
+              -> Query Posts [Post]
+paginatePosts start rows =
+    asks $ \posts ->
+    let sets = map snd $ M.toList (posts_by_time posts)
+        idList = concatMap HS.toList sets
+        postList = mapMaybe (flip HM.lookup (posts_by_id posts)) idList
+    in take rows $ drop start postList
 
 deriveSafeCopy 1 'base ''Post
 deriveSafeCopy 1 'base ''PostInsert
