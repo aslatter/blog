@@ -35,8 +35,8 @@ handleForm :: Text -- ^ page title
 handleForm title form = do
   r <- eitherHappstackForm form "form"
   case r of
-    Left form -> do
-        let (renderedForm,_) = renderFormHtml form 
+    Left formV -> do
+        let (renderedForm,_) = renderFormHtml formV
         response <-
             renderBlaze
                [("pageTitle", title)]

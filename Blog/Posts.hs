@@ -18,18 +18,13 @@ import Data.Acid (update', query')
 import Data.Monoid (mconcat)
 import Data.Text (Text)
 import Data.Text.Encoding (encodeUtf8, decodeUtf8)
-import qualified Data.Text as T
 import Data.Time
     (Day, TimeOfDay, TimeZone, LocalTime(..), ZonedTime(..),
      getCurrentTimeZone, getZonedTime)
 import qualified Database.BlobStorage as Store
-import Text.Blaze.Html5 ((!), toValue)
-import qualified Text.Blaze.Html5 as H
-import qualified Text.Blaze.Html5.Attributes as A
 import Text.Digestive ((++>), (<++))
 import Text.Digestive.Blaze.Html5
-import Text.Digestive.Forms.Happstack
-import Happstack.Server (Response, decodeBody, defaultBodyPolicy, finishWith)
+import Happstack.Server (Response, decodeBody, defaultBodyPolicy)
 
 -- Primitve operations
 

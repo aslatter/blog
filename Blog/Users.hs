@@ -6,7 +6,6 @@ module Blog.Users
 
 import Blog.Core
 import Blog.Forms
-import Blog.Templates
 import qualified Blog.Users.Core as Core
 
 import Control.Applicative ((<$>), (<*>))
@@ -20,13 +19,10 @@ import Data.Text (Text)
 import qualified Data.Text as T
 import qualified Data.Text.Encoding as T
 import Happstack.Server
-import Text.Blaze.Html5 (Html, (!), toValue)
-import qualified Text.Blaze.Html5 as H
-import qualified Text.Blaze.Html5.Attributes as A
+import Text.Blaze.Html5 (Html)
 import Text.Digestive
     ((++>), Transformer, transformEitherM, transform)
 import Text.Digestive.Blaze.Html5
-import Text.Digestive.Forms.Happstack
 
 -- primitive operations
 

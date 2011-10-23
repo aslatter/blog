@@ -10,7 +10,6 @@ import Control.Monad.Reader
 import Data.Acid
 import qualified Database.BlobStorage as BS
 import Data.Monoid (mconcat)
-import Data.Text (Text)
 import Happstack.Server
     hiding (body)
 import System.Environment (getArgs)
@@ -51,13 +50,13 @@ frontPagePosts = do
           "Posted on: "
           toHtml $ show $ post_time post
         toHtml body
-        H.p $ do
+        H.p $
           H.a ! A.href (toValue editUrl) $ "Edit"
 
 main :: IO ()
 main = do
   args <- getArgs
-  if (length args == 2)
+  if length args == 2
    then addUser (args!!0) (args!!1) 
    else site
 
