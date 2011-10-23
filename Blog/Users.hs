@@ -108,8 +108,8 @@ addUserFromPlaintext username password s =
 
 data LoginData
     = LoginData
-      { login_username :: String
-      , login_password :: String
+      { login_username :: Text
+      , login_password :: Text
       }
 
 loginForm :: AppForm UserId
@@ -117,7 +117,7 @@ loginForm =
     flip transform authenticate $
     (errors ++>) $
     LoginData <$> label "User: "     ++> inputText Nothing
-              <*> label "Password: " ++> inputPassword
+              <*> label "Password: " ++> inputPassword False
 
 -- we perform a login by transforming the form into one
 -- over user ids
@@ -125,8 +125,8 @@ loginForm =
 authenticate :: Transformer App Html LoginData UserId
 authenticate =
     transformEitherM $ \login -> do
-      let userName = T.pack $ login_username login
-          pword = T.encodeUtf8 . T.pack $ login_password login
+      let userName = login_username login
+          pword = T.encodeUtf8 $ login_password login
       authResult <- coreAuthUser userName pword
       case authResult of
         Just userId -> return . Right $ userId

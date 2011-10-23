@@ -60,10 +60,10 @@ paginatePosts start rows = do
 
 data PostContent =
     MkPostContent
-    { pc_title :: String
+    { pc_title :: Text
     , pc_day   :: Day
     , pc_time  :: TimeOfDay
-    , pc_body  :: String
+    , pc_body  :: Text
     }
 
 createPost :: UserId -> TimeZone -> PostContent -> App PostInsert
@@ -71,8 +71,8 @@ createPost user tz pc = do
   blob <- storePostBody body
   return $ MkInsert zonedTime title user blob
  where
-   title = T.pack $ pc_title pc
-   body  = T.pack $ pc_body pc
+   title = pc_title pc
+   body  = pc_body pc
    localTime = LocalTime (pc_day pc) (pc_time pc)
    zonedTime = ZonedTime localTime tz
 
@@ -85,7 +85,7 @@ postForm =
       <*> label "Time: "  ++> inputTextRead "Invalid time" Nothing <++ errors 
       <*> inputTextArea Nothing Nothing Nothing <++ errors
 
-titleForm :: Maybe String -> AppForm String
+titleForm :: Maybe Text -> AppForm Text
 titleForm title =
     mkRequired "A title is required" $
     inputText title

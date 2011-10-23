@@ -30,7 +30,7 @@ Executable blog
                        cereal == 0.3.*,
                        containers == 0.4.*,
                        digestive-functors == 0.1.*,
-                       digestive-functors-blaze == 0.1.*,
+                       digestive-functors-blaze >= 0.2.0.1 && < 0.3,
                        digestive-functors-happstack == 0.1.*,
                        happstack-heist == 6.0.*,
                        happstack-server == 6.2.*,
