@@ -80,6 +80,9 @@ postUtcTime = zonedTimeToUTC . insert_time . toPostInsert
 postDay :: PostLike post => post -> Day
 postDay = localDay . zonedTimeToLocalTime . insert_time . toPostInsert
 
+postTz :: PostLike post => post -> TimeZone
+postTz = zonedTimeZone . insert_time . toPostInsert
+
 newtype PostId = MkPostId Word32
   deriving (Eq, Ord, Show, Read, Hashable,
               SafeCopy, Typeable, Data, PathInfo)

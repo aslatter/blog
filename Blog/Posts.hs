@@ -1,4 +1,4 @@
-{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE OverloadedStrings, DoAndIfThenElse #-}
 
 module Blog.Posts
     ( postHandler
@@ -11,7 +11,7 @@ import Blog.Forms
 import qualified Blog.Posts.Core as P
 import Blog.Templates
 
-import Control.Applicative ((<$>), (<*>))
+import Control.Applicative ((<$>), (<*>), empty)
 import Control.Monad.Trans (liftIO)
 import qualified Data.ByteString.Lazy as LBS
 import Data.Acid (update', query')
@@ -21,7 +21,7 @@ import Data.Text.Encoding (encodeUtf8, decodeUtf8)
 import qualified Data.Text as T
 import Data.Time
     (Day, TimeOfDay, TimeZone, LocalTime(..), ZonedTime(..),
-     getCurrentTimeZone)
+     getCurrentTimeZone, getZonedTime)
 import qualified Database.BlobStorage as Store
 import Text.Blaze.Html5 ((!), toValue)
 import qualified Text.Blaze.Html5 as H
@@ -37,6 +37,16 @@ insertPost :: PostInsert -> App PostId
 insertPost pc = do
   p <- appPosts
   update' p $ P.InsertPost pc
+
+postById :: PostId -> App (Maybe Post)
+postById pid = do
+  p <- appPosts
+  query' p $ P.PostById pid
+
+updatePost :: PostInsert -> PostId -> App Bool
+updatePost post pid = do
+  p <- appPosts
+  update' p $ P.UpdatePost post pid
 
 storePostBody :: Text -> App BlobId
 storePostBody body = do
@@ -77,27 +87,55 @@ createPost user tz pc = do
    zonedTime = ZonedTime localTime tz
 
 
-postForm :: AppForm PostContent
-postForm =
+postForm :: PostContent -> AppForm PostContent
+postForm c =
     MkPostContent
-      <$> label "Title: " ++> titleForm Nothing <++ errors
-      <*> label "Date:  " ++> inputTextRead "Invalid date" Nothing <++ errors
-      <*> label "Time: "  ++> inputTextRead "Invalid time" Nothing <++ errors 
-      <*> inputTextArea Nothing Nothing Nothing <++ errors
+      <$> label "Title: " ++> titleForm (Just $ pc_title c) <++ errors
+      <*> label "Date:  " ++> inputTextRead "Invalid date" (Just $ pc_day c) <++ errors
+      <*> label "Time: "  ++> inputTextRead "Invalid time" (Just $ pc_time c) <++ errors 
+      <*> inputTextArea (Just 50) (Just 80) (Just $ pc_body c) <++ errors
 
 titleForm :: Maybe Text -> AppForm Text
 titleForm title =
     mkRequired "A title is required" $
     inputText title
 
+newPostForm :: App (AppForm PostContent)
+newPostForm = do
+  zt <- liftIO getZonedTime
+  let t = zonedTimeToLocalTime zt
+  return $
+    postForm $
+    MkPostContent
+        ""
+        (localDay t)
+        (localTimeOfDay t)
+        ""
+
+editPostForm :: Post -> App (AppForm PostContent)
+editPostForm post = do
+  body <- getPostBody post
+  let t = zonedTimeToLocalTime $ post_time post
+  return $
+    postForm $
+    MkPostContent
+        (post_title post)
+        (localDay t)
+        (localTimeOfDay t)
+        body
+
 -- The handler
+
+postBodyDecode :: App ()
+postBodyDecode =
+    decodeBody $ defaultBodyPolicy "tmp" (1024*1024) (20*1024) (2*1024)
 
 postHandler :: PostSite -> App Response
 postHandler New = do
     user <- requireLoggedIn
-    decodeBody $ defaultBodyPolicy "tmp" (1024*1024) (20*1024) (2*1024)
+    postBodyDecode
 
-    postContent <- handleForm "New Post" postForm
+    postContent <- newPostForm >>= handleForm "New Post"
 
     tz <- liftIO getCurrentTimeZone
     newPost <- createPost user tz postContent
@@ -107,5 +145,29 @@ postHandler New = do
       , ("content", "Your post has been submitted!")
       ]
       "_layout"
-  
+
+postHandler (Edit postId) = do
+  postM <- postById postId
+  case postM of
+    Nothing -> empty
+    Just post
+        -> do
+      user <- (requireLoggedIn :: App UserId)
+      -- check for posting user?
+      postBodyDecode
+
+      postContent <- editPostForm post >>= handleForm "Edit Post"
+      newPost <- createPost (post_author post) (postTz post) postContent
+      ret <- updatePost newPost postId
+
+      if not ret
+      then undefined -- TODO
+      else do
+
+      renderWithText
+        [ ("pageTitle", "Thanks!")
+        , ("content", "Your edit has been submitted!")
+        ]
+        "_layout"
+
 postHandler _ = error "Nothing to see here"
