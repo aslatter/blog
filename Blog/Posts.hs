@@ -88,7 +88,7 @@ postForm c =
       <$> label "Title: " ++> titleForm (Just $ pc_title c) <++ errors
       <*> label "Date:  " ++> inputTextRead "Invalid date" (Just $ pc_day c) <++ errors
       <*> label "Time: "  ++> inputTextRead "Invalid time" (Just $ pc_time c) <++ errors 
-      <*> inputTextArea (Just 50) (Just 80) (Just $ pc_body c) <++ errors
+      <*> inputTextArea (Just 25) (Just 80) (Just $ pc_body c) <++ errors
 
 titleForm :: Maybe Text -> AppForm Text
 titleForm title =
