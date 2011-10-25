@@ -1,6 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 
 import Blog.Core
+import Blog.Markdown
 import Blog.Posts
 import Blog.Templates
 import Blog.Users
@@ -49,7 +50,7 @@ frontPagePosts = do
         H.p $ do
           "Posted on: "
           toHtml $ show $ post_time post
-        toHtml body
+        markdown body
         H.p $
           H.a ! A.href (toValue editUrl) $ "Edit"
 
