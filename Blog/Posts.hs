@@ -127,7 +127,7 @@ postBodyDecode =
 
 postHandler :: PostSite -> App Response
 postHandler New = do
-    user <- requireLoggedIn
+    user <- requireLoggedIn'
     postBodyDecode
 
     postContent <- newPostForm >>= handleForm "New Post"
@@ -147,7 +147,7 @@ postHandler (Edit postId) = do
     Nothing -> empty
     Just post
         -> do
-      user <- (requireLoggedIn :: App UserId)
+      user <- requireLoggedIn'
       -- check for posting user?
       postBodyDecode
 

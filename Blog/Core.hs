@@ -16,9 +16,9 @@ module Blog.Core
     , appPosts
     , appTemplate
     , appTemplateDirectory
-    , setLoggedIn, forwardAfterLogin
-    , requireLoggedIn, refreshLoggedIn
-    , setLoggedOut, loginData
+    , setLoggedIn', forwardAfterLogin'
+    , requireLoggedIn', refreshLoggedIn'
+    , setLoggedOut', loginData'
     ) where
 
 import Blog.Users.Core as Xport (Users(..), UserId(..), emptyUsers, User(..))
@@ -67,11 +67,11 @@ instance ShowURL App where
     type URL App = Sitemap
     showURLParams url = App . showURLParams url
 
-
 instance AuthMonad App where
-    getAuthState = do
+    type Session App = UserId
+    getAuthConfig = do
       loginUrl <- showURL $ User UserLogin
-      return $ defaultAuthState {loginForm = loginUrl}
+      return $ defaultAuthConfig {loginForm = loginUrl}
 
 runApp :: AppState -> App a -> RouteT Sitemap (ServerPartT IO) a
 runApp appState (App m) = mapRouteT mapFn m

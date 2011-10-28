@@ -134,7 +134,7 @@ userHandler :: UserSite -> App Response
 userHandler UserLogin = do
   decodeBody $ defaultBodyPolicy "tmp" (1024*1024) (20*1024) (2*1024)
   userId <- handleForm "Login" loginForm
-  setLoggedIn userId
-  forwardAfterLogin "/"
+  setLoggedIn' userId
+  forwardAfterLogin' "/"
 
 userHandler _ = error "What?!?!"
