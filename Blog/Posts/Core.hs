@@ -19,6 +19,7 @@ import Data.HashMap.Strict (HashMap)
 import qualified Data.HashMap.Strict as HM
 import Data.HashSet (HashSet)
 import qualified Data.HashSet as HS
+import Data.List (find)
 import qualified Data.Map as M
 import Data.Maybe (catMaybes, mapMaybe)
 import Data.Monoid (mappend, mempty)
@@ -234,6 +235,13 @@ paginatePosts start rows =
         postList = mapMaybe (flip HM.lookup (posts_by_id posts)) idList
     in take rows $ drop start postList
 
+postByPath :: Day -> Text -> Query Posts (Maybe Post)
+postByPath day shortTitle =
+    asks $ \posts -> do
+      idSet <- M.lookup day (posts_by_day posts)
+      let postList = mapMaybe (flip HM.lookup (posts_by_id posts)) $ HS.toList idSet
+      find (\p -> post_short_name p == shortTitle) postList
+
 deriveSafeCopy 1 'base ''Post
 deriveSafeCopy 1 'base ''PostInsert
 deriveSafeCopy 1 'base ''Posts
@@ -243,5 +251,6 @@ makeAcidic ''Posts
            , 'updatePost
            , 'deletePost
            , 'postById
+           , 'postByPath
            , 'paginatePosts
            ]

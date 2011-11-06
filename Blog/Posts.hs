@@ -4,10 +4,12 @@ module Blog.Posts
     ( postHandler
     , paginatePosts
     , getPostBody
+    , postHtml
     ) where
 
 import Blog.Core
 import Blog.Forms
+import Blog.Markdown
 import qualified Blog.Posts.Core as P
 import Blog.Templates
 
@@ -15,6 +17,9 @@ import Control.Applicative ((<$>), (<*>), empty)
 import Control.Monad.Trans (liftIO)
 import qualified Data.ByteString.Lazy as LBS
 import Data.Acid (update', query')
+import Text.Blaze.Html5 ((!), toValue, Html, toHtml)
+import qualified Text.Blaze.Html5 as H
+import qualified Text.Blaze.Html5.Attributes as A
 import Data.Monoid (mconcat)
 import Data.Text (Text)
 import Data.Text.Encoding (encodeUtf8, decodeUtf8)
@@ -24,7 +29,8 @@ import Data.Time
 import qualified Database.BlobStorage as Store
 import Text.Digestive ((++>), (<++))
 import Text.Digestive.Blaze.Html5
-import Happstack.Server (Response, decodeBody, defaultBodyPolicy)
+import Happstack.Server (Response, decodeBody, defaultBodyPolicy, seeOther, toResponse)
+import Web.Routes (showURL)
 
 -- Primitve operations
 
@@ -37,6 +43,11 @@ postById :: PostId -> App (Maybe Post)
 postById pid = do
   p <- appPosts
   query' p $ P.PostById pid
+
+postByPath :: Day -> Text -> App (Maybe Post)
+postByPath day title = do
+  p <- appPosts
+  query' p $ P.PostByPath day title
 
 updatePost :: PostInsert -> PostId -> App Bool
 updatePost post pid = do
@@ -147,7 +158,7 @@ postHandler (Edit postId) = do
     Nothing -> empty
     Just post
         -> do
-      user <- requireLoggedIn'
+      _ <- requireLoggedIn'
       -- check for posting user?
       postBodyDecode
 
@@ -159,10 +170,33 @@ postHandler (Edit postId) = do
       then undefined -- TODO
       else do
 
-      renderWithText
-        [ ("pageTitle", "Thanks!")
-        , ("content", "Your edit has been submitted!")
-        ]
-        "_layout"
+      permURL <- showURL $ Post $ View (PathDay $ postDay post) (post_short_name post)
+      seeOther permURL $ toResponse ()
 
-postHandler _ = error "Nothing to see here"
+postHandler (View (PathDay day) shortTitle) = do
+  postM <- postByPath day shortTitle
+  case postM of
+    Nothing -> empty
+    Just post ->
+        postHtml post >>=
+        renderBlaze [("pageTitle",post_title post),("header","")] "_layout"
+
+postHanlder _ = error "Nothing to see here!"
+
+postHtml :: Post -> App Html
+postHtml post = do
+  body <- getPostBody post
+  editUrl <- showURL $ Post $ Edit $ post_id post
+  permURL <- showURL $ Post $ View (PathDay $ postDay post) (post_short_name post)
+  return $
+    H.article $ do
+      H.h2 $
+        H.a ! A.href (toValue permURL) $
+          toHtml $ post_title post
+      H.p $ do
+        "Posted on: "
+        toHtml $ show $ post_time post
+      markdown body
+      H.p $
+        H.a ! A.href (toValue editUrl) $ "Edit"
+
