@@ -37,10 +37,14 @@ import Web.Routes (showURL)
 
 -- Primitve operations
 
-insertPost :: PostInsert -> App PostId
+insertPost :: PostInsert -> App Post
 insertPost pc = do
   p <- appPosts
-  update' p $ P.InsertPost pc
+  pid <- update' p $ P.InsertPost pc
+  post <- postById pid
+  case post of
+    Nothing -> error "fatal error in insertPost"
+    Just post' -> return post'
 
 postById :: PostId -> App (Maybe Post)
 postById pid = do
@@ -52,10 +56,13 @@ postByPath day title = do
   p <- appPosts
   query' p $ P.PostByPath day title
 
-updatePost :: PostInsert -> PostId -> App Bool
+updatePost :: PostInsert -> PostId -> App (Maybe Post)
 updatePost post pid = do
   p <- appPosts
-  update' p $ P.UpdatePost post pid
+  res <- update' p $ P.UpdatePost post pid
+  case res of
+    False -> return Nothing
+    True  -> postById pid
 
 storePostBody :: Text -> App BlobId
 storePostBody body = do
@@ -155,12 +162,10 @@ postHandler New = do
 
     tz <- liftIO getCurrentTimeZone
     newPost <- createPost user tz postContent
-    _ <- insertPost newPost
-    renderWithText
-      [ ("pageTitle", "Thanks!")
-      , ("content", "Your post has been submitted!")
-      ]
-      "_layout"
+    post' <- insertPost newPost
+
+    permURL <- postUrl post'
+    seeOther permURL $ toResponse ()
 
 postHandler (Edit postId) = do
   postM <- postById postId
@@ -176,12 +181,11 @@ postHandler (Edit postId) = do
       newPost <- createPost (post_author post) (postTz post) postContent
       ret <- updatePost newPost postId
 
-      if not ret
-      then undefined -- TODO
-      else do
-
-      permURL <- showURL $ Post $ View (PathDay $ postDay post) (post_short_name post)
-      seeOther permURL $ toResponse ()
+      case ret of
+        Nothing -> undefined -- TODO
+        Just post' -> do
+         permURL <- postUrl post
+         seeOther permURL $ toResponse ()
 
 postHandler (View (PathDay day) shortTitle) = do
   postM <- postByPath day shortTitle
@@ -191,13 +195,14 @@ postHandler (View (PathDay day) shortTitle) = do
         postHtml post >>=
         renderBlaze [("pageTitle",post_title post),("header","")] "_layout"
 
-postHanlder _ = error "Nothing to see here!"
+postUrl :: Post -> App String
+postUrl post = showURL $ Post $ View (PathDay $ postDay post) (post_short_name post)
 
 postHtml :: Post -> App Html
 postHtml post = do
   body <- getPostBody post
   editUrl <- showURL $ Post $ Edit $ post_id post
-  permURL <- showURL $ Post $ View (PathDay $ postDay post) (post_short_name post)
+  permURL <- postUrl post
   return $
     H.article $ do
       H.h2 $
