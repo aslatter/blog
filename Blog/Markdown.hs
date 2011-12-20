@@ -1,20 +1,33 @@
 {-# LANGUAGE OverloadedStrings #-}
 module Blog.Markdown
     ( markdown
+    , markdownCssTagName
+    , markdownCss
     ) where
 
 import Data.Text (Text)
+import qualified Data.Text as Text
 import Text.Blaze (Html)
-
-import Text.Pandoc2.Reader.Markdown
-import Text.Pandoc2.Shared
-import Text.Pandoc2.Writer.HTML
+import Text.Highlighting.Kate (defaultHighlightingCss)
+import Text.Pandoc.Readers.Markdown
+import Text.Pandoc
+import Text.Templating.Heist
+import Text.XmlHtml (Node(..))
 
 markdown :: Text -> Html
 markdown text =
-    case markdownDoc poptions text of
-      Nothing -> "Error!"
-      Just doc ->
-          docToHtml poptions doc
+    case readMarkdown defaultParserState (Text.unpack text) of
+      doc -> writeHtml writeOpts doc
 
-          
+writeOpts :: WriterOptions
+writeOpts =
+    defaultWriterOptions
+      { writerStandalone = False
+      , writerHtml5 = False
+      }
+
+markdownCssTagName :: Text
+markdownCssTagName = "highlightingStyle"
+
+markdownCss :: Monad m => Splice m
+markdownCss = return [Element "style" [] [TextNode (Text.pack defaultHighlightingCss)]]

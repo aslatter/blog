@@ -20,8 +20,9 @@ import Data.Acid (update', query')
 import Text.Blaze.Html5 ((!), toValue, Html, toHtml)
 import qualified Text.Blaze.Html5 as H
 import qualified Text.Blaze.Html5.Attributes as A
-import Data.Monoid (mconcat)
+import Data.Monoid (mconcat, mappend)
 import Data.Text (Text)
+import qualified Data.Text as T
 import Data.Text.Encoding (encodeUtf8, decodeUtf8)
 import Data.Time
     (Day, TimeOfDay, TimeZone, LocalTime(..), ZonedTime(..),
@@ -29,7 +30,9 @@ import Data.Time
 import qualified Database.BlobStorage as Store
 import Text.Digestive ((++>), (<++))
 import Text.Digestive.Blaze.Html5
-import Happstack.Server (Response, decodeBody, defaultBodyPolicy, seeOther, toResponse)
+import Happstack.Server
+    (Response, decodeBody, defaultBodyPolicy, seeOther, toResponse,
+     askRq, readInputsBody )
 import Web.Routes (showURL)
 
 -- Primitve operations
@@ -79,7 +82,7 @@ data PostContent =
     { pc_title :: Text
     , pc_day   :: Day
     , pc_time  :: TimeOfDay
-    , pc_body  :: Text
+    , pc_body  :: Text -- ^ newlines are expected to be \r\n encoded
     }
 
 createPost :: UserId -> TimeZone -> PostContent -> App PostInsert
@@ -88,10 +91,9 @@ createPost user tz pc = do
   return $ MkInsert zonedTime title user blob
  where
    title = pc_title pc
-   body  = pc_body pc
+   body  = decodeNewlines $ pc_body pc
    localTime = LocalTime (pc_day pc) (pc_time pc)
    zonedTime = ZonedTime localTime tz
-
 
 postForm :: PostContent -> AppForm PostContent
 postForm c =
@@ -128,7 +130,15 @@ editPostForm post = do
         (post_title post)
         (localDay t)
         (localTimeOfDay t)
-        body
+        (encodeNewlines body)
+
+encodeNewlines :: Text -> Text
+encodeNewlines =
+    T.intercalate "\r\n" . T.splitOn "\n"
+
+decodeNewlines :: Text -> Text
+decodeNewlines =
+    T.intercalate "\n" . T.splitOn "\r\n"
 
 -- The handler
 

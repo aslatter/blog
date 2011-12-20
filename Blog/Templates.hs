@@ -19,6 +19,7 @@ module Blog.Templates
     ) where
 
 import Blog.Core
+import Blog.Markdown
 
 import Blaze.ByteString.Builder (toLazyByteString)
 import Control.Applicative ((<$>))
@@ -90,6 +91,7 @@ initTemplates templateDir = do
 appSplices :: Monad m => [(Text, Splice m)]
 appSplices =
     [ ("header", headerSplice)
+    , (markdownCssTagName, markdownCss)
     , missing "pageTitle"
     , missing "content"
     ]
