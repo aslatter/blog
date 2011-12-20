@@ -1,4 +1,4 @@
-<!DOCTYPE html><ignore>-*-Html-*-</ignore>
+<!DOCTYPE html>
 <html>
 <head>
   <title><pageTitle /></title>
@@ -6,7 +6,8 @@
   <highlightingStyle />
 </head>
 <body>
-  <h1><header /></h1>
+  <h1>Panic Sonic</h1>
+  <h2><header /></h2>
   <div id="content">
     <content />
  </div>

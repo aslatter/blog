@@ -48,7 +48,7 @@ import Text.Templating.Heist.TemplateDirectory
 import Web.Routes
 import Web.Routes.Happstack()
 
--- shared for all requests
+-- | Shared for all requests
 data AppState
     = MkAppState
       { app_blobstore :: BlobStorage
