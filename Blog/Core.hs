@@ -19,6 +19,7 @@ module Blog.Core
     , setLoggedIn', forwardAfterLogin'
     , requireLoggedIn', refreshLoggedIn'
     , setLoggedOut', loginData'
+    , isLoggedIn
     ) where
 
 import Blog.Users.Core as Xport (Users(..), UserId(..), emptyUsers, User(..))
@@ -30,11 +31,12 @@ import Blog.Sitemap as Xport
     , PathDay(..)
     )
 
-import Control.Applicative (Alternative, Applicative)
+import Control.Applicative (Alternative, Applicative, (<$>))
 import Control.Monad.Reader
 import Database.BlobStorage
 import Database.BlobStorage as Xport (BlobId)
 import Data.Acid
+import Data.Maybe (isJust)
 import Happstack.Server
     (ServerPartT, mapServerPartT,
      ServerMonad, FilterMonad, Response, WebMonad, HasRqData)
@@ -110,3 +112,6 @@ appTemplate = asks app_template >>= getDirectoryTS
 appTemplateDirectory :: App (TemplateDirectory App)
 appTemplateDirectory = asks app_template
 
+-- | Is there currently a logged-in user
+isLoggedIn :: App Bool
+isLoggedIn = isJust <$> loginData'
