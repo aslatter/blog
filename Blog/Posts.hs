@@ -184,7 +184,7 @@ postHandler (Edit postId) = do
       case ret of
         Nothing -> undefined -- TODO
         Just post' -> do
-         permURL <- postUrl post
+         permURL <- postUrl post'
          seeOther permURL $ toResponse ()
 
 postHandler (View (PathDay day) shortTitle) = do
