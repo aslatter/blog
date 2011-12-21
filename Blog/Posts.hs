@@ -16,7 +16,7 @@ import Blog.Templates
 import Control.Applicative ((<$>), (<*>), empty)
 import Control.Monad.Trans (liftIO)
 import qualified Data.ByteString.Lazy as LBS
-import Data.Acid (update', query')
+import Data.Acid.Advanced (update', query')
 import Text.Blaze.Html5 ((!), toValue, Html, toHtml)
 import qualified Text.Blaze.Html5 as H
 import qualified Text.Blaze.Html5.Attributes as A

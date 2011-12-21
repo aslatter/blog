@@ -68,8 +68,8 @@ initAppState :: IO AppState
 initAppState = do
   putStrLn "Starting up ..."
 
-  posts <- openAcidState emptyPosts
-  users <- openAcidState emptyUsers
+  posts <- openLocalState emptyPosts
+  users <- openLocalState emptyUsers
   store <- BS.open "blobStore"
   templates <- initTemplates "templates"
 

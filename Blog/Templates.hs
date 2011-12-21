@@ -82,10 +82,9 @@ templateReloader =
 -- | Build the initial template state information, given
 -- the path to the templates folder.
 initTemplates :: MonadIO m => FilePath -> IO (TemplateDirectory m)
-initTemplates templateDir = do
-  let ts = bindSplices appSplices $
-           emptyTemplateState templateDir
-  newTemplateDirectory' templateDir ts
+initTemplates templateDir =
+    let ts = bindSplices appSplices emptyTemplateState
+    in newTemplateDirectory' templateDir ts
 
 -- | Default splices we make available.
 appSplices :: Monad m => [(Text, Splice m)]
