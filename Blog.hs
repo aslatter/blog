@@ -73,7 +73,7 @@ initAppState = do
   store <- BS.open "blobStore"
   templates <- initTemplates "templates"
 
-  return $ MkAppState store users posts templates  
+  return $ MkAppState store users posts templates
 
 closeAppState :: AppState -> IO ()
 closeAppState (MkAppState _ users posts _) = do
