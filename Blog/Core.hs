@@ -65,9 +65,9 @@ newtype App a =
            MonadReader AppState)
 -- I dream of a future happstack where 'ServerMonad, FilterMonad Response,
 -- WebMonad Response, HasRqData' are all summed up with 'ServerMonad'
-instance ShowURL App where
+instance MonadRoute App where
     type URL App = Sitemap
-    showURLParams url = App . showURLParams url
+    askRouteFn = App askRouteFn
 
 instance AuthMonad App where
     type Session App = UserId

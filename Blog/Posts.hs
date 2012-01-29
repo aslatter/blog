@@ -195,7 +195,7 @@ postHandler (View (PathDay day) shortTitle) = do
         postHtml post >>=
         renderBlaze [("pageTitle",post_title post),("header","")] "_layout"
 
-postUrl :: Post -> App String
+postUrl :: Post -> App Text
 postUrl post = showURL $ Post $ View (PathDay $ postDay post) (post_short_name post)
 
 postHtml :: Post -> App Html

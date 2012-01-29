@@ -55,7 +55,7 @@ site =
 
       simpleHTTP nullConf $
         msum
-          [ implSite "/" "" appSite
+          [ implSite "" "" appSite
           , serveDirectory DisableBrowsing [] "static"
           , appAction appNotFound
           ]

@@ -35,10 +35,6 @@ getBinaryCopy =
 putBinaryCopy :: (B.Binary a) => a -> Contained C.Put
 putBinaryCopy = contain . C.put . B.encode
 
-instance WR.PathInfo T.Text where
-    toPathSegments = WR.toPathSegments . T.unpack
-    fromPathSegments = T.pack `fmap` WR.fromPathSegments
-
 instance WR.PathInfo Word32 where
     toPathSegments = WR.toPathSegments . (fromIntegral :: Word32 -> Int)
     fromPathSegments = (fromIntegral :: Int -> Word32) `fmap` WR.fromPathSegments

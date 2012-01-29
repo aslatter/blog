@@ -14,6 +14,7 @@ import Blog.Posts.Core (PostId(..))
 import Control.Applicative
 import Data.Data (Data)
 import Data.Text (Text)
+import qualified Data.Text as Text
 import Data.Time
     ( Day
     , FormatTime, ParseTime
@@ -51,13 +52,13 @@ newtype PathDay = PathDay Day
 parseReadS :: msg -> ReadS a -> URLParser a
 parseReadS msg r =
     pToken msg $ \str ->
-        case r str of
+        case r (Text.unpack str) of
           [(x,"")] -> Just x
           _ -> Nothing
 
 instance PathInfo PathDay where
     toPathSegments (PathDay day) =
-        [showGregorian day]
+        [Text.pack $ showGregorian day]
     fromPathSegments =
         PathDay <$>
          parseReadS "valid date"
